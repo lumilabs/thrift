@@ -1810,6 +1810,9 @@ void t_java_generator::generate_java_struct_parcelable(ofstream& out, t_struct* 
  * @param tstruct The struct definition
  */
 void t_java_generator::generate_java_struct_equality(ofstream& out, t_struct* tstruct) {
+  const char *fields_to_ignore[] = {"_id", "_nsId"};
+  const vector<std::string> ignored_fields(fields_to_ignore, std::end(fields_to_ignore));
+
   out << indent() << "@Override" << endl << indent() << "public boolean equals(Object that) {"
       << endl;
   indent_up();
@@ -1843,6 +1846,9 @@ void t_java_generator::generate_java_struct_equality(ofstream& out, t_struct* ts
     if (is_optional || can_be_null) {
       this_present += " && this." + generate_isset_check(*m_iter);
       that_present += " && that." + generate_isset_check(*m_iter);
+    }
+    if (std::find(ignored_fields.begin(), ignored_fields.end(), name) != ignored_fields.end()) {
+      continue;
     }
 
     out << indent() << "boolean this_present_" << name << " = " << this_present << ";" << endl
@@ -1887,6 +1893,10 @@ void t_java_generator::generate_java_struct_equality(ofstream& out, t_struct* ts
 
     if (is_optional || can_be_null) {
       present += " && (" + generate_isset_check(*m_iter) + ")";
+    }
+
+    if (std::find(ignored_fields.begin(), ignored_fields.end(), name) != ignored_fields.end()) {
+      continue;
     }
 
     indent(out) << "boolean present_" << name << " = " << present << ";" << endl;
