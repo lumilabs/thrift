@@ -289,6 +289,7 @@ public:
 
   enum isset_type { ISSET_NONE, ISSET_PRIMITIVE, ISSET_BITSET };
   isset_type needs_isset(t_struct* tstruct, std::string* outPrimitiveType = NULL);
+  long bit_vector_value(std::string* outPrimitiveType = NULL);
 
   /**
    * Helper rendering functions
@@ -1427,7 +1428,7 @@ void t_java_generator::generate_java_struct_definition(ofstream& out,
     case ISSET_NONE:
       break;
     case ISSET_PRIMITIVE:
-      indent(out) << "private " << primitiveType << " __isset_bitfield = 0;" << endl;
+      indent(out) << "private " << primitiveType << " __isset_bitfield = " << bit_vector_value(&primitiveType) << ";" << endl;
       break;
     case ISSET_BITSET:
       indent(out) << "private BitSet __isset_bit_vector = new BitSet(" << i << ");" << endl;
@@ -4723,6 +4724,15 @@ t_java_generator::isset_type t_java_generator::needs_isset(t_struct* tstruct,
   } else {
     return ISSET_BITSET;
   }
+}
+
+long t_java_generator::bit_vector_value(std::string* outPrimitiveType) {
+  if (outPrimitiveType->compare("byte") == 0)
+    return 127;        // 2^7 - 1
+  else if (outPrimitiveType->compare("short") == 0)
+    return 32767;      // 2^15 - 1
+  else
+    return 2147483647; // 2^31 - 1 
 }
 
 void t_java_generator::generate_java_struct_clear(std::ofstream& out, t_struct* tstruct) {
