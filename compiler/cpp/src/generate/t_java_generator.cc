@@ -413,7 +413,7 @@ string t_java_generator::java_type_imports() {
   }
 
   if (use_option_type_) {
-    option = string() + "import org.apache.thrift.Option;\n";
+    option = string() + "import scala.Option;\n";
   }
 
   // android does not support @Generated Annotation
@@ -2177,11 +2177,11 @@ void t_java_generator::generate_java_bean_boilerplate(ofstream& out, t_struct* t
         indent_up();
         indent(out) << "if (this." << field_name << " == null) {" << endl;
         indent_up();
-        indent(out) << "return Option.none();" << endl;
+        indent(out) << "return Option.empty();" << endl;
         indent_down();
         indent(out) << "} else {" << endl;
         indent_up();
-        indent(out) << "return Option.some(this." << field_name << ".size());" << endl;
+        indent(out) << "return Option.apply(this." << field_name << ".size());" << endl;
         indent_down();
         indent(out) << "}" << endl;
         indent_down();
@@ -2215,11 +2215,11 @@ void t_java_generator::generate_java_bean_boilerplate(ofstream& out, t_struct* t
         indent_up();
         indent(out) << "if (this." << field_name << " == null) {" << endl;
         indent_up();
-        indent(out) << "return Option.none();" << endl;
+        indent(out) << "return Option.empty();" << endl;
         indent_down();
         indent(out) << "} else {" << endl;
         indent_up();
-        indent(out) << "return Option.some(this." << field_name << ".iterator());" << endl;
+        indent(out) << "return Option.apply(this." << field_name << ".iterator());" << endl;
         indent_down();
         indent(out) << "}" << endl;
         indent_down();
@@ -2301,11 +2301,11 @@ void t_java_generator::generate_java_bean_boilerplate(ofstream& out, t_struct* t
 
         indent(out) << "if (this.isSet" << cap_name << "()) {" << endl;
         indent_up();
-        indent(out) << "return Option.some(this." << field_name << ");" << endl;
+        indent(out) << "return Option.apply(this." << field_name << ");" << endl;
         indent_down();
         indent(out) << "} else {" << endl;
         indent_up();
-        indent(out) << "return Option.none();" << endl;
+        indent(out) << "return Option.empty();" << endl;
         indent_down();
         indent(out) << "}" << endl;
         indent_down();
