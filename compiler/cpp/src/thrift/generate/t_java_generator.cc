@@ -5011,11 +5011,11 @@ t_java_generator::isset_type t_java_generator::needs_isset(t_struct* tstruct,
 
 long t_java_generator::bit_vector_value(std::string* outPrimitiveType) {
   if (outPrimitiveType->compare("byte") == 0)
-    return 127;        // 2^7 - 1
+    return -127;        // 2^8 - 1
   else if (outPrimitiveType->compare("short") == 0)
-    return 32767;      // 2^15 - 1
+    return -32767;      // 2^16 - 1
   else
-    return 2147483647; // 2^31 - 1
+    return -2147483647; // 2^32 - 1
 }
 
 void t_java_generator::generate_java_struct_clear(std::ostream& out, t_struct* tstruct) {
