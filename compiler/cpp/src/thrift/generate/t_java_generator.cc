@@ -5011,7 +5011,7 @@ t_java_generator::isset_type t_java_generator::needs_isset(t_struct* tstruct,
 
 long t_java_generator::bit_vector_value(std::string* outPrimitiveType) {
   if (outPrimitiveType->compare("byte") == 0)
-    return -127;        // 2^8 - 1
+    return -1;        // java byte is stored as 2's compliment
   else if (outPrimitiveType->compare("short") == 0)
     return -32767;      // 2^16 - 1
   else
