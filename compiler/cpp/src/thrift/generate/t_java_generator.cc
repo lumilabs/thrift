@@ -2562,6 +2562,40 @@ void t_java_generator::generate_java_bean_boilerplate(ostream& out, t_struct* ts
     indent_down();
     indent(out) << "}" << endl << endl;
 
+    if(type_can_be_null(type) && optional) {
+      // Setter with Option
+      if (is_deprecated) {
+	indent(out) << "@Deprecated" << endl;
+      }
+      indent(out) << "public ";
+      if (bean_style_) {
+	out << "void";
+      } else {
+	out << type_name(tstruct);
+      }
+      out << " set" << cap_name << "(" << "scala.Option<"
+	  << type_name(type) << "> " << field_name << "Opt) {" << endl;
+      indent_up();
+      indent(out) << "if(" << field_name << "Opt.isDefined()) {" << endl;
+      indent_up();
+      indent(out) << "this." << field_name << " = ";
+      if (type->is_binary() && !unsafe_binaries_) {
+	out << "org.apache.thrift.TBaseHelper.copyBinary(" << field_name << ")";
+      } else {
+	out << field_name << "Opt.get()";
+      }
+      out << ";" << endl;
+      indent_down();
+      indent(out) << "}" << endl;
+      generate_isset_set(out, field, "");
+      if (!bean_style_) {
+	indent(out) << "return this;" << endl;
+      }
+
+      indent_down();
+      indent(out) << "}" << endl << endl;
+    }
+    
     // Unsetter
     if (is_deprecated) {
       indent(out) << "@Deprecated" << endl;
