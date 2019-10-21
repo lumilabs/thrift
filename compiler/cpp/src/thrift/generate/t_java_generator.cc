@@ -2135,6 +2135,21 @@ void t_java_generator::generate_java_validator(ostream& out, t_struct* tstruct) 
       out << indent() << "  " << (*f_iter)->get_name() << ".validate();" << endl;
       out << indent() << "}" << endl;
     }
+    if(type->is_list() || type->is_set()) {
+      out << indent() << "if (" << (*f_iter)->get_name() << " != null) {" << endl;
+      out << indent() << "  for (" << type_name(type) << " listElement : " << (*f_iter)->get_name() << ") {" << endl;
+      out << indent() << "    " << "listElement.validate();" << endl;
+      out << indent() << "  }" << endl;
+      out << indent() << "}" << endl;
+    }
+
+    if(type->is_map()) {
+      out << indent() << "if (" << (*f_iter)->get_name() << " != null) {" << endl;
+      out << indent() << "  for (" << type_name(type) << " listElement : " << (*f_iter)->get_name() << ".values()) {" << endl;
+      out << indent() << "    " << "listElement.validate();" << endl;
+      out << indent() << "  }" << endl;
+      out << indent() << "}" << endl;
+    }
   }
 
   indent_down();
