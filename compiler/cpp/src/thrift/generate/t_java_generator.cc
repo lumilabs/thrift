@@ -2125,7 +2125,7 @@ void t_java_generator::generate_java_validator(ostream& out, t_struct* tstruct) 
       out << indent() << "  " << (*f_iter)->get_name() << ".validate();" << endl;
       out << indent() << "}" << endl;
     }
-    if(type->is_set() && (t_set*)type)->get_elem_type()->is_struct()) {
+    if(type->is_set() && ((t_set*)type)->get_elem_type()->is_struct()) {
       out << indent() << "if (" << (*f_iter)->get_name() << " != null) {" << endl;
       out << indent() << "  for (" << type_name(((t_set*)type)->get_elem_type()) << " setElement : " << (*f_iter)->get_name() << ") {" << endl;
       out << indent() << "    " << "setElement.validate();" << endl;
@@ -2141,7 +2141,7 @@ void t_java_generator::generate_java_validator(ostream& out, t_struct* tstruct) 
       out << indent() << "}" << endl;
     }
 
-    if(type->is_map() && (t_map*)type)->get_val_type()->is_struct()) {
+    if(type->is_map() && ((t_map*)type)->get_val_type()->is_struct()) {
       out << indent() << "if (" << (*f_iter)->get_name() << " != null) {" << endl;
       out << indent() << "  for (" << type_name(((t_map*)type)->get_val_type()) << " mapElement : " << (*f_iter)->get_name() << ".values()) {" << endl;
       out << indent() << "    " << "mapElement.validate();" << endl;
