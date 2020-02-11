@@ -2418,7 +2418,13 @@ void t_java_generator::generate_java_bean_boilerplate(ostream& out, t_struct* ts
       if (is_deprecated) {
         indent(out) << "@Deprecated" << endl;
       }
-      indent(out) << "public void add" << get_cap_name("to");
+      indent(out) << "public ";
+      if (bean_style_) {
+        out << "void";
+      } else {
+        out << type_name(tstruct);
+      }
+      out << " add" << get_cap_name("to");
       out << cap_name << "(" << type_name(element_type) << " elem) {" << endl;
 
       indent_up();
@@ -2432,7 +2438,23 @@ void t_java_generator::generate_java_bean_boilerplate(ostream& out, t_struct* ts
       }
       indent_down();
       indent(out) << "}" << endl;
+      indent(out) << "try {" << endl;
+      indent_up();
       indent(out) << "this." << field_name << ".add(elem);" << endl;
+      indent_down();
+      indent(out) << "} catch (UnsupportedOperationException e) {" << endl;
+      indent_up();
+      if (is_enum_set(type)) {
+        indent(out) << type_name(type, false, true) << " temp = " << type_name(type, false, true, true) << ".noneOf(" << inner_enum_type_name(type) << ");" << endl;
+      } else {
+        indent(out) << type_name(type, false, true) << " temp = new " << type_name(type, false, true) << "();" << endl;
+      }
+      indent(out) << "temp.addAll(this." << field_name << ");" << endl;
+      indent(out) << "this." << field_name << " = temp;" << endl;
+      indent(out) << "this." << field_name << ".add(elem);" << endl;
+      indent_down();
+      indent(out) << "}" << endl;
+      indent(out) << "return this;" << endl;
       indent_down();
       indent(out) << "}" << endl << endl;
     } else if (type->is_map()) {
@@ -2552,7 +2574,7 @@ void t_java_generator::generate_java_bean_boilerplate(ostream& out, t_struct* ts
       }else{
         indent(out) << " : java.nio.ByteBuffer.wrap(" << field_name << ".clone());" << endl;
       }
-                 
+
       if (!bean_style_) {
         indent(out) << "  return this;" << endl;
       }
@@ -2618,7 +2640,7 @@ void t_java_generator::generate_java_bean_boilerplate(ostream& out, t_struct* ts
       indent_down();
       indent(out) << "}" << endl << endl;
     }
-    
+
     // Unsetter
     if (is_deprecated) {
       indent(out) << "@Deprecated" << endl;
