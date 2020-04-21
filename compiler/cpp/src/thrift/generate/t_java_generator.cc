@@ -1984,13 +1984,13 @@ void t_java_generator::generate_java_struct_equality(ostream& out, t_struct* tst
     bool can_be_null = type_can_be_null(t);
     string name = (*m_iter)->get_name();
 
+    if ((name.length() > 0) && (name[0] == prefix_to_ignore)) {
+      continue;
+    }
+
     if (is_optional || can_be_null) {
       indent(out) << "hashCode = hashCode * " << MUL << " + ((" << generate_isset_check(*m_iter)
                   << ") ? " << B_YES << " : " << B_NO << ");" << endl;
-    }
-
-    if ((name.length() > 0) && (name[0] == prefix_to_ignore)) {
-      continue;
     }
 
     if (is_optional || can_be_null) {

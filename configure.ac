@@ -20,8 +20,8 @@
 AC_PREREQ(2.65)
 AC_CONFIG_MACRO_DIR([./aclocal])
 
-AC_INIT([thrift], [0.12.0])
-AC_INIT([thrift], [0.12.0.lumilabs])
+
+AC_INIT([thrift], [0.12.0.5.lumilabs])
 
 AC_CONFIG_AUX_DIR([.])
 
