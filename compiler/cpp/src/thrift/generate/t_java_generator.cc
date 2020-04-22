@@ -1921,14 +1921,16 @@ void t_java_generator::generate_java_struct_equality(ostream& out, t_struct* tst
   const vector<t_field*>& members = tstruct->get_members();
   vector<t_field*>::const_iterator m_iter;
   for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
-    out << endl;
-
     t_type* t = get_true_type((*m_iter)->get_type());
     // Most existing Thrift code does not use isset or optional/required,
     // so we treat "default" fields as required.
     bool is_optional = (*m_iter)->get_req() == t_field::T_OPTIONAL;
     bool can_be_null = type_can_be_null(t);
     string name = (*m_iter)->get_name();
+    if ((name.length() > 0) && (name[0] == prefix_to_ignore)) {
+      continue;
+    }
+    out << endl;
 
     string this_present = "true";
     string that_present = "true";
@@ -1937,10 +1939,6 @@ void t_java_generator::generate_java_struct_equality(ostream& out, t_struct* tst
     if (is_optional || can_be_null) {
       this_present += " && this." + generate_isset_check(*m_iter);
       that_present += " && that." + generate_isset_check(*m_iter);
-    }
-
-    if ((name.length() > 0) && (name[0] == prefix_to_ignore)) {
-      continue;
     }
 
     out << indent() << "boolean this_present_" << name << " = " << this_present << ";" << endl
@@ -1977,16 +1975,14 @@ void t_java_generator::generate_java_struct_equality(ostream& out, t_struct* tst
   indent(out) << "int hashCode = 1;" << endl;
 
   for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
-    out << endl;
-
     t_type* t = get_true_type((*m_iter)->get_type());
     bool is_optional = (*m_iter)->get_req() == t_field::T_OPTIONAL;
     bool can_be_null = type_can_be_null(t);
     string name = (*m_iter)->get_name();
-
     if ((name.length() > 0) && (name[0] == prefix_to_ignore)) {
       continue;
     }
+    out << endl;
 
     if (is_optional || can_be_null) {
       indent(out) << "hashCode = hashCode * " << MUL << " + ((" << generate_isset_check(*m_iter)
