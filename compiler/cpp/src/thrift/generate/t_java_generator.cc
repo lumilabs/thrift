@@ -5436,6 +5436,10 @@ void t_java_generator::generate_java_struct_tuple_reader(ostream& out, t_struct*
       generate_deserialize_field(out, (*f_iter), "struct.", false);
       indent(out) << "struct.set" << get_cap_name((*f_iter)->get_name()) << get_cap_name("isSet")
                   << "(true);" << endl;
+      t_type* type = get_true_type((*f_iter)->get_type());
+      if (type->is_map() || type->is_list() || type->is_set()) {
+        indent(out) << "struct.set" << get_cap_name((*f_iter)->get_name()) << "(struct." << (*f_iter)->get_name() << ");" << endl;
+      }
     }
   }
   if (optional_count > 0) {
@@ -5449,6 +5453,10 @@ void t_java_generator::generate_java_struct_tuple_reader(ostream& out, t_struct*
         generate_deserialize_field(out, (*f_iter), "struct.", false);
         indent(out) << "struct.set" << get_cap_name((*f_iter)->get_name()) << get_cap_name("isSet")
                     << "(true);" << endl;
+        t_type* type = get_true_type((*f_iter)->get_type());
+        if (type->is_map() || type->is_list() || type->is_set()) {
+          indent(out) << "struct.set" << get_cap_name((*f_iter)->get_name()) << "(struct." << (*f_iter)->get_name() << ");" << endl;
+        }
         indent_down();
         indent(out) << "}" << endl;
         i++;
