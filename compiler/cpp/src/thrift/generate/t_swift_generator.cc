@@ -125,6 +125,10 @@ public:
                                   bool all,
                                   bool is_private);
 
+  void generate_swift_struct_codable(ostream& out,
+                                  t_struct* tstruct,
+                                  bool is_private);
+
   void generate_swift_struct_implementation(ostream& out,
                                             t_struct* tstruct,
                                             bool is_result,
@@ -422,7 +426,8 @@ void t_swift_generator::generate_enum(t_enum* tenum) {
     generate_old_enum(tenum);
     return;
   }
-  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum";
+  bool should_generate_codable = true;
+  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum, Codable";
   block_open(f_decl_);
 
   vector<t_enum_value*> constants = tenum->get_constants();
@@ -497,6 +502,51 @@ void t_swift_generator::generate_enum(t_enum* tenum) {
   }
   f_decl_ << indent() << "}" << endl;
   block_close(f_decl_);
+
+  if (should_generate_codable) {
+    f_decl_ << endl;
+    f_decl_ << indent() << "public enum CodingKeys: CodingKey";
+    block_open(f_decl_);
+    f_decl_ << indent() << "case rawValue" << endl;
+    block_close(f_decl_);
+
+    // public enum CodingKeys: CodingKey {
+    //   case rawValue
+    // }
+    f_decl_ << endl;
+    f_decl_ << indent() << "public init(from decoder: Decoder) throws";
+    block_open(f_decl_);
+    f_decl_ << indent() << "let values = try decoder.container(keyedBy: CodingKeys.self)" << endl;
+    f_decl_ << indent() << "let int32Value = try values.decode(Int32.self, forKey: .rawValue)" << endl;
+    f_decl_ << indent() << "guard let value = Self.init(rawValue: int32Value) else";
+    block_open(f_decl_);
+    f_decl_ << indent() << "throw TProtocolError(error: .invalidData," << endl;
+    f_decl_ << indent() << "                     message: \"Invalid enum value (\\(int32Value)) for \\("
+            << tenum->get_name() << ".self)\")" << endl;
+    block_close(f_decl_);
+    f_decl_ << indent() << "self = value" << endl;
+    block_close(f_decl_);
+
+    // public init(from decoder: Decoder) throws {
+    //   let values = try decoder.container(keyedBy: CodingKeys.self)
+    //   let int32Value = try values.decode(Int32.self, forKey: .rawValue)
+    //   guard let value = Self.init(rawValue: int32Value) else {
+    //     throw TProtocolError(error: .invalidData, message: "Invalid enum value (\(int32Value)) for \(Self.self)")
+    //   }
+    //   self = value
+    // }
+    f_decl_ << endl;
+    f_decl_ << indent() << "public func encode(to encoder: Encoder) throws";
+    block_open(f_decl_);
+    f_decl_ << indent() << "var container = encoder.container(keyedBy: CodingKeys.self)" << endl;
+    f_decl_ << indent() << "try container.encode(self.rawValue, forKey: .rawValue)" << endl;
+    block_close(f_decl_);
+
+    // public func encode(to encoder: Encoder) throws {
+    //   var container = encoder.container(keyedBy: CodingKeys.self)
+    //   try container.encode(self.rawValue, forKey: .rawValue)
+    // }
+  }
 
 
 
@@ -681,7 +731,7 @@ void t_swift_generator::generate_swift_struct(ostream& out,
 
   if (tstruct->is_union()) {
     // special, unions
-    out << indent() << "public enum " << tstruct->get_name();
+    out << indent() << "public enum " << tstruct->get_name() << ": Codable";
     block_open(out);
     for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
       out << endl;
@@ -695,11 +745,14 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     // Normal structs
 
     string visibility = is_private ? (gen_cocoa_ ? "private" : "fileprivate") : "public";
+    bool should_generate_codable = !(tstruct->is_xception() || tstruct->is_union()) && visibility == "public";
 
     out << indent() << visibility << " final class " << tstruct->get_name();
 
     if (tstruct->is_xception()) {
       out << " : Swift.Error"; // Error seems to be a common exception name in thrift
+    } else if (should_generate_codable) {
+      out << " : Codable"; // Codable conformance improves performance for hashing
     }
 
     block_open(out);
@@ -727,6 +780,10 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     if (struct_has_optional_fields(tstruct)) {
       generate_swift_struct_init(out, tstruct, true, is_private);
     }
+    if (should_generate_codable) {
+      generate_swift_struct_codable(out, tstruct, is_private);
+    }
+
   }
 
   block_close(out);
@@ -839,6 +896,36 @@ void t_swift_generator::generate_swift_struct_init(ostream& out,
             << maybe_escape_identifier((*m_iter)->get_name()) << endl;
       }
     }
+  }
+
+  block_close(out);
+
+  out << endl;
+}
+
+/**
+ * Generate struct init for properties
+ *
+ * @param tstruct The structure definition
+ * @param is_private
+ *                Is the initializer public or private
+ */
+void t_swift_generator::generate_swift_struct_codable(ostream& out,
+                                                   t_struct* tstruct,
+                                                   bool is_private) {
+
+  string visibility = is_private ? (gen_cocoa_ ? "private" : "fileprivate") : "public";
+
+  indent(out) << visibility << " enum CodingKeys: CodingKey";
+  block_open(out);
+
+  const vector<t_field*>& members = tstruct->get_members();
+  vector<t_field*>::const_iterator m_iter;
+
+  bool first=true;
+  for (m_iter = members.begin(); m_iter != members.end();) {
+    out << indent() << "case " << (*m_iter)->get_name() << endl;
+    ++m_iter;
   }
 
   block_close(out);
