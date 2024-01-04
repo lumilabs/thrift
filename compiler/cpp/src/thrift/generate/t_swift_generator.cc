@@ -922,7 +922,6 @@ void t_swift_generator::generate_swift_struct_codable(ostream& out,
   const vector<t_field*>& members = tstruct->get_members();
   vector<t_field*>::const_iterator m_iter;
 
-  bool first=true;
   for (m_iter = members.begin(); m_iter != members.end();) {
     out << indent() << "case " << (*m_iter)->get_name() << endl;
     ++m_iter;
