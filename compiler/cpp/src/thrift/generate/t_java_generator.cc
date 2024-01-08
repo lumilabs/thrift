@@ -208,6 +208,7 @@ public:
   void generate_union_getters_and_setters(ostream& out, t_struct* tstruct);
   void generate_union_is_set_methods(ostream& out, t_struct* tstruct);
   void generate_union_abstract_methods(ostream& out, t_struct* tstruct);
+  void generate_union_validator(std::ostream& out);
   void generate_check_type(ostream& out, t_struct* tstruct);
   void generate_standard_scheme_read_value(ostream& out, t_struct* tstruct);
   void generate_standard_scheme_write_value(ostream& out, t_struct* tstruct);
@@ -895,6 +896,10 @@ void t_java_generator::generate_java_union(t_struct* tstruct) {
   f_struct << endl;
 
   generate_java_struct_read_object(f_struct, tstruct);
+
+  f_struct << endl;
+
+  generate_union_validator(f_struct);
 
   f_struct << endl;
 
@@ -2175,6 +2180,11 @@ void t_java_generator::generate_java_validator(ostream& out, t_struct* tstruct) 
 
   indent_down();
   indent(out) << "}" << endl << endl;
+}
+
+// generates java method to perform various checks on unions
+void t_java_generator::generate_union_validator(ostream& out) {
+    indent(out) << "public void validate() throws org.apache.thrift.TException {}" << endl;
 }
 
 /**
@@ -5496,7 +5506,6 @@ void t_java_generator::generate_java_struct_tuple_writer(ostream& out, t_struct*
     }
 
     indent(out) << "oprot.writeBitSet(optionals, " << optional_count << ");" << endl;
-    int j = 0;
     for (f_iter = fields.begin(); f_iter != fields.end(); ++f_iter) {
       if ((*f_iter)->get_req() == t_field::T_OPTIONAL
           || (*f_iter)->get_req() == t_field::T_OPT_IN_REQ_OUT) {
@@ -5505,7 +5514,6 @@ void t_java_generator::generate_java_struct_tuple_writer(ostream& out, t_struct*
         generate_serialize_field(out, (*f_iter), "struct.", false);
         indent_down();
         indent(out) << "}" << endl;
-        j++;
       }
     }
   }
