@@ -1526,7 +1526,7 @@ void t_swift_generator::generate_swift_struct_printable_extension(ostream& out, 
   out << endl;
   indent(out) << "public var description : String";
   block_open(out);
-  indent(out) << "var desc = \"" << tstruct->get_name();
+  indent(out) << (fields.empty() ? "let" : "var") << " desc = \"" << tstruct->get_name();
 
   if (!gen_cocoa_) {
     if (!tstruct->is_union()) {
