@@ -63,10 +63,13 @@ public:
     gen_cocoa_ = false;
     promise_kit_ = false;
     safe_enums_ = false;
+    gen_codable_ = false;
 
     for( iter = parsed_options.begin(); iter != parsed_options.end(); ++iter) {
       if( iter->first.compare("log_unexpected") == 0) {
         log_unexpected_ = true;
+      } else if( iter->first.compare("codable") == 0) {
+        gen_codable_ = true;
       } else if( iter->first.compare("async_clients") == 0) {
         async_clients_ = true;
       } else if( iter->first.compare("no_strict") == 0) {
@@ -288,6 +291,7 @@ private:
   bool no_strict_;
   bool namespaced_;
   bool safe_enums_;
+  bool gen_codable_;
   set<string> swift_reserved_words_;
 
   /** Swift 2/Cocoa compatibility */
@@ -426,7 +430,7 @@ void t_swift_generator::generate_enum(t_enum* tenum) {
     generate_old_enum(tenum);
     return;
   }
-  bool should_generate_codable = true;
+  bool should_generate_codable = gen_codable_;
   f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum, Codable";
   block_open(f_decl_);
 
