@@ -431,7 +431,10 @@ void t_swift_generator::generate_enum(t_enum* tenum) {
     return;
   }
   bool should_generate_codable = gen_codable_;
-  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum, Codable";
+  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum";
+  if (should_generate_codable) {
+    f_decl_ << ", Codable";
+  }
   block_open(f_decl_);
 
   vector<t_enum_value*> constants = tenum->get_constants();
@@ -724,6 +727,7 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     generate_old_swift_struct(out, tstruct, is_private);
     return;
   }
+  bool should_generate_codable = gen_codable_;
   string doc = tstruct->get_doc();
   generate_docstring(out, doc);
 
@@ -735,7 +739,10 @@ void t_swift_generator::generate_swift_struct(ostream& out,
 
   if (tstruct->is_union()) {
     // special, unions
-    out << indent() << "public enum " << tstruct->get_name() << ": Codable";
+    out << indent() << "public enum " << tstruct->get_name();
+    if (should_generate_codable) {
+      out << ": Codable";
+    }
     block_open(out);
     for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
       out << endl;
@@ -749,7 +756,7 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     // Normal structs
 
     string visibility = is_private ? (gen_cocoa_ ? "private" : "fileprivate") : "public";
-    bool should_generate_codable = !(tstruct->is_xception() || tstruct->is_union()) && visibility == "public";
+    bool should_generate_codable = !(tstruct->is_xception() || tstruct->is_union()) && visibility == "public" && gen_codable_;
 
     out << indent() << visibility << " final class " << tstruct->get_name();
 
