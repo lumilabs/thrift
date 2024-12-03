@@ -63,10 +63,13 @@ public:
     gen_cocoa_ = false;
     promise_kit_ = false;
     safe_enums_ = false;
+    gen_codable_ = false;
 
     for( iter = parsed_options.begin(); iter != parsed_options.end(); ++iter) {
       if( iter->first.compare("log_unexpected") == 0) {
         log_unexpected_ = true;
+      } else if( iter->first.compare("codable") == 0) {
+        gen_codable_ = true;
       } else if( iter->first.compare("async_clients") == 0) {
         async_clients_ = true;
       } else if( iter->first.compare("no_strict") == 0) {
@@ -288,6 +291,7 @@ private:
   bool no_strict_;
   bool namespaced_;
   bool safe_enums_;
+  bool gen_codable_;
   set<string> swift_reserved_words_;
 
   /** Swift 2/Cocoa compatibility */
@@ -426,8 +430,11 @@ void t_swift_generator::generate_enum(t_enum* tenum) {
     generate_old_enum(tenum);
     return;
   }
-  bool should_generate_codable = true;
-  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum, Codable";
+  bool should_generate_codable = gen_codable_;
+  f_decl_ << indent() << "public enum " << tenum->get_name() << " : TEnum";
+  if (should_generate_codable) {
+    f_decl_ << ", Codable";
+  }
   block_open(f_decl_);
 
   vector<t_enum_value*> constants = tenum->get_constants();
@@ -720,6 +727,7 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     generate_old_swift_struct(out, tstruct, is_private);
     return;
   }
+  bool should_generate_codable = gen_codable_;
   string doc = tstruct->get_doc();
   generate_docstring(out, doc);
 
@@ -731,7 +739,10 @@ void t_swift_generator::generate_swift_struct(ostream& out,
 
   if (tstruct->is_union()) {
     // special, unions
-    out << indent() << "public enum " << tstruct->get_name() << ": Codable";
+    out << indent() << "public enum " << tstruct->get_name();
+    if (should_generate_codable) {
+      out << ": Codable";
+    }
     block_open(out);
     for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
       out << endl;
@@ -745,7 +756,7 @@ void t_swift_generator::generate_swift_struct(ostream& out,
     // Normal structs
 
     string visibility = is_private ? (gen_cocoa_ ? "private" : "fileprivate") : "public";
-    bool should_generate_codable = !(tstruct->is_xception() || tstruct->is_union()) && visibility == "public";
+    bool should_generate_codable = !(tstruct->is_xception() || tstruct->is_union()) && visibility == "public" && gen_codable_;
 
     out << indent() << visibility << " final class " << tstruct->get_name();
 
